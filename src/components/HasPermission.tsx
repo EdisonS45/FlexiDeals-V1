@@ -13,7 +13,7 @@ export async function HasPermission({
   fallbackText?: string
   children: AwaitedReactNode
 }) {
-  const { userId } = auth()
+  const { userId } =await auth()
   const hasPermission = await permission(userId)
   if (hasPermission) return children
   if (renderFallback) return <NoPermissionCard>{fallbackText}</NoPermissionCard>

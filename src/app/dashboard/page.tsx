@@ -15,7 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ViewsByDayChart } from "./_components/charts/ViewsByDayChart"
 
 export default async function DashboardPage() {
-  const { userId, redirectToSignIn } = auth()
+  const { userId, redirectToSignIn } =await auth()
   if (userId == null) return redirectToSignIn()
 
   const products = await getProducts(userId, { limit: 6 })

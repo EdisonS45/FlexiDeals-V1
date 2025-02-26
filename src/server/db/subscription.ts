@@ -2,7 +2,7 @@ import { subscriptionTiers } from "@/data/subscriptionTiers"
 import { db } from "@/drizzle/db"
 import { UserSubscriptionTable } from "@/drizzle/schema"
 import { CACHE_TAGS, dbCache, getUserTag, revalidateDbCache } from "@/lib/cache"
-import { SQL } from "drizzle-orm"
+import { eq, SQL } from "drizzle-orm"
 
 export async function createUserSubscription(
   data: typeof UserSubscriptionTable.$inferInsert
@@ -29,18 +29,54 @@ export async function createUserSubscription(
   return newSubscription
 }
 
-export function getUserSubscription(userId: string) {
-  const cacheFn = dbCache(getUserSubscriptionInternal, {
-    tags: [getUserTag(userId, CACHE_TAGS.subscription)],
-  })
 
-  return cacheFn(userId)
+export async function getUserSubscription(userId: string) {
+  console.log("🔍 Fetching subscription for user:", userId);
+
+  try {
+    if (!userId) {
+      console.error("❌ Error: userId is missing!");
+      return null;
+    }
+
+    console.log("🛠️ Executing DB query...");
+    const subscription = await db
+      .select()
+      .from(UserSubscriptionTable)
+      .where(eq(UserSubscriptionTable.clerkUserId, userId))
+      .limit(1);
+
+    console.log("📌 Fetched Subscription from DB:", subscription);
+
+    if (!subscription || subscription.length === 0) {
+      console.warn("⚠️ No subscription found for user:", userId);
+      
+      // 🔥 Automatically create a default subscription
+      const newSubscription = await db.insert(UserSubscriptionTable).values({
+        clerkUserId: userId,
+        tier: "Free",  // Default subscription tier
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }).returning();
+
+      console.log("✅ Created default subscription:", newSubscription);
+      return newSubscription[0]; 
+    }
+
+    return subscription[0];
+  } catch (error) {
+    console.error("🔥 Database query failed:", error);
+    return null;
+  }
 }
+
 
 export async function updateUserSubscription(
   where: SQL,
   data: Partial<typeof UserSubscriptionTable.$inferInsert>
 ) {
+  console.log("Updating subscription with:", where, data)  // Debugging
+
   const [updatedSubscription] = await db
     .update(UserSubscriptionTable)
     .set(data)
@@ -48,7 +84,10 @@ export async function updateUserSubscription(
     .returning({
       id: UserSubscriptionTable.id,
       userId: UserSubscriptionTable.clerkUserId,
+      stripeSubscriptionId: UserSubscriptionTable.stripeSubscriptionId, // Ensure this is fetched
     })
+
+  console.log("Updated Subscription:", updatedSubscription) // Debugging
 
   if (updatedSubscription != null) {
     revalidateDbCache({
@@ -58,6 +97,7 @@ export async function updateUserSubscription(
     })
   }
 }
+
 
 export async function getUserSubscriptionTier(userId: string) {
   const subscription = await getUserSubscription(userId)

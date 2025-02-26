@@ -40,7 +40,7 @@ export async function createCancelSession() {
 }
 
 export async function createCustomerPortalSession() {
-  const { userId } = auth()
+  const { userId } =await auth()
 
   if (userId == null) return { error: true }
 

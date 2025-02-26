@@ -27,7 +27,7 @@ export default async function EditProductPage({
   params: { productId: string }
   searchParams: { tab?: string }
 }) {
-  const { userId, redirectToSignIn } = auth()
+  const { userId, redirectToSignIn } =await auth()
   if (userId == null) return redirectToSignIn()
 
   const product = await getProduct({ id: productId, userId })

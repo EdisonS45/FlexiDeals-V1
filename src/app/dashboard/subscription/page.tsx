@@ -29,7 +29,7 @@ import { CheckIcon } from "lucide-react"
 import { ReactNode } from "react"
 
 export default async function SubscriptionPage() {
-  const { userId, redirectToSignIn } = auth()
+  const { userId, redirectToSignIn } =await auth()
   if (userId == null) return redirectToSignIn()
   const tier = await getUserSubscriptionTier(userId)
   const productCount = await getProductCount(userId)

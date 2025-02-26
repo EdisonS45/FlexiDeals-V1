@@ -33,7 +33,7 @@ export default async function AnalyticsPage({
     productId?: string
   }
 }) {
-  const { userId, redirectToSignIn } = auth()
+  const { userId, redirectToSignIn } =await auth()
   if (userId == null) return redirectToSignIn()
 
   const interval =

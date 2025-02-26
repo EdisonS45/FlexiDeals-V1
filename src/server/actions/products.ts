@@ -20,7 +20,7 @@ import { canCreateProduct, canCustomizeBanner } from "../permissions"
 export async function createProduct(
   unsafeData: z.infer<typeof productDetailsSchema>
 ): Promise<{ error: boolean; message: string } | undefined> {
-  const { userId } = auth()
+  const { userId } =await auth()
   const { success, data } = productDetailsSchema.safeParse(unsafeData)
   const canCreate = await canCreateProduct(userId)
 
@@ -37,7 +37,7 @@ export async function updateProduct(
   id: string,
   unsafeData: z.infer<typeof productDetailsSchema>
 ): Promise<{ error: boolean; message: string } | undefined> {
-  const { userId } = auth()
+  const { userId } =await auth()
   const { success, data } = productDetailsSchema.safeParse(unsafeData)
   const errorMessage = "There was an error updating your product"
 
@@ -54,7 +54,7 @@ export async function updateProduct(
 }
 
 export async function deleteProduct(id: string) {
-  const { userId } = auth()
+  const { userId } =await auth()
   const errorMessage = "There was an error deleting your product"
 
   if (userId == null) {
@@ -73,7 +73,7 @@ export async function updateCountryDiscounts(
   id: string,
   unsafeData: z.infer<typeof productCountryDiscountsSchema>
 ) {
-  const { userId } = auth()
+  const { userId } =await auth()
   const { success, data } = productCountryDiscountsSchema.safeParse(unsafeData)
 
   if (!success || userId == null) {
