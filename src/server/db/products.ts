@@ -1,6 +1,7 @@
 import { db } from "@/drizzle/db"
 import {
   CountryGroupDiscountTable,
+  HolidayDiscountTable,
   ProductCustomizationTable,
   ProductTable,
 } from "@/drizzle/schema"
@@ -15,6 +16,20 @@ import {
 import { removeTrailingSlash } from "@/lib/utils"
 import { and, count, eq, inArray, sql } from "drizzle-orm"
 import { BatchItem } from "drizzle-orm/batch"
+
+export async function getProductHolidays({ productId, userId }: { productId: string, userId: string }) {
+  const holidays = await db
+    .select()
+    .from(HolidayDiscountTable)
+    .where(and(
+      eq(HolidayDiscountTable.productId, productId)
+      // If you have userId in this table, also filter by it
+    ))
+    .orderBy(HolidayDiscountTable.holidayDate);
+
+  return holidays;
+}
+
 
 export function getProductCountryGroups({
   productId,

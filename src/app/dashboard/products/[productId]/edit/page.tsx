@@ -1,4 +1,5 @@
 import { CountryDiscountsForm } from "@/app/dashboard/_components/forms/CountryDiscountsForm"
+import { HolidayDiscountsForm } from "@/app/dashboard/_components/forms/HolidayDiscountsForm"
 import { ProductCustomizationForm } from "@/app/dashboard/_components/forms/ProductCustomizationForm"
 import { ProductDetailsForm } from "@/app/dashboard/_components/forms/ProductDeailsForm"
 import { PageWithBackButton } from "@/app/dashboard/_components/PageWithBackButton"
@@ -15,6 +16,7 @@ import {
   getProduct,
   getProductCountryGroups,
   getProductCustomization,
+  getProductHolidays,
 } from "@/server/db/products"
 import { canCustomizeBanner, canRemoveBranding } from "@/server/permissions"
 import { auth } from "@clerk/nextjs/server"
@@ -42,6 +44,7 @@ export default async function EditProductPage({
         <TabsList className="bg-background/60">
           <TabsTrigger value="details">Details</TabsTrigger>
           <TabsTrigger value="countries">Country</TabsTrigger>
+          <TabsTrigger value="holidays">Holidays</TabsTrigger> {/* New Tab */}
           <TabsTrigger value="customization">Customization</TabsTrigger>
         </TabsList>
         <TabsContent value="details">
@@ -50,6 +53,9 @@ export default async function EditProductPage({
         <TabsContent value="countries">
           <CountryTab productId={productId} userId={userId} />
         </TabsContent>
+        <TabsContent value="holidays">
+          <HolidayTab productId={productId} userId={userId} />
+        </TabsContent>
         <TabsContent value="customization">
           <CustomizationsTab productId={productId} userId={userId} />
         </TabsContent>
@@ -57,6 +63,32 @@ export default async function EditProductPage({
     </PageWithBackButton>
   )
 }
+async function HolidayTab({
+  productId,
+  userId,
+}: {
+  productId: string
+  userId: string
+}) {
+  const holidays = await getProductHolidays({ productId, userId });
+
+  // Map holidays to match HolidayEntry
+  const mappedHolidays = holidays.map(h => ({
+    id: h.id,
+    date: h.holidayDate,
+    name: h.holidayName,
+    startBefore: h.startBefore,
+    endAfter: h.endAfter,
+    discount: h.discountPercentage ? h.discountPercentage.toString() : "",
+    couponCode: h.couponCode ?? "",  // convert null to empty string
+  }));
+
+  return (
+    <HolidayDiscountsForm initialEntries={mappedHolidays} productId={productId} />
+  );
+}
+
+
 
 function DetailsTab({
   product,

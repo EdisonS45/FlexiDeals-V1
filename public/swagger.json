@@ -1,0 +1,69 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+      "title": "FlexiDeals API",
+      "version": "1.0.0",
+      "description": "API for getting product discount based on product name and country code."
+    },
+    "paths": {
+      "/api/products/get-discount": {
+        "post": {
+          "summary": "Get Discount for Product",
+          "description": "Returns discount coupon and percentage based on the product name and country code.",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "productName": {
+                      "type": "string",
+                      "example": "Productivity Course"
+                    },
+                    "countryCode": {
+                      "type": "string",
+                      "example": "IN"
+                    }
+                  },
+                  "required": ["productName", "countryCode"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Discount found",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "coupon": {
+                        "type": "string",
+                        "example": "APITESTING"
+                      },
+                      "discountPercentage": {
+                        "type": "number",
+                        "example": 90
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Bad Request - Missing productName or countryCode"
+            },
+            "404": {
+              "description": "Product or discount not found"
+            },
+            "500": {
+              "description": "Internal Server Error"
+            }
+          }
+        }
+      }
+    }
+  }
+  

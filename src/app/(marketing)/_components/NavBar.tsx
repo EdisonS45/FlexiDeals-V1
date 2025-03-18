@@ -9,6 +9,9 @@ export function NavBar() {
         <Link href="/" className="mr-auto">
           <BrandLogo />
         </Link>
+        <Link className="text-lg" href="/api-documentation">
+          API Documentation
+        </Link>
         <Link className="text-lg" href="#">
           Features
         </Link>
