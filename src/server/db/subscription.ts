@@ -3,6 +3,7 @@ import { db } from "@/drizzle/db"
 import { UserSubscriptionTable } from "@/drizzle/schema"
 import { CACHE_TAGS, dbCache, getUserTag, revalidateDbCache } from "@/lib/cache"
 import { eq, SQL } from "drizzle-orm"
+import { SQLWrapper } from "drizzle-orm"; // Import if needed
 
 export async function createUserSubscription(
   data: typeof UserSubscriptionTable.$inferInsert
@@ -70,12 +71,17 @@ export async function getUserSubscription(userId: string) {
   }
 }
 
-
 export async function updateUserSubscription(
-  where: SQL,
-  data: Partial<typeof UserSubscriptionTable.$inferInsert>
+  where: SQL<unknown>, // ✅ Fixed type: SQLWrapper → SQL<unknown>
+  data: Partial<{
+    clerkUserId?: string;
+    stripeSubscriptionId?: string | undefined; // ✅ Allowed undefined instead of null
+    stripeSubscriptionItemId?: string | undefined;
+    stripeCustomerId?: string | undefined; // ✅ Added missing property
+    tier?: "Free" | "Basic" | "Standard" | "Premium" | undefined; // ✅ Fixed type
+  }>
 ) {
-  console.log("Updating subscription with:", where, data)  // Debugging
+  console.log("Updating subscription with:", where, data); // Debugging
 
   const [updatedSubscription] = await db
     .update(UserSubscriptionTable)
@@ -84,18 +90,21 @@ export async function updateUserSubscription(
     .returning({
       id: UserSubscriptionTable.id,
       userId: UserSubscriptionTable.clerkUserId,
-      stripeSubscriptionId: UserSubscriptionTable.stripeSubscriptionId, // Ensure this is fetched
-    })
+      stripeSubscriptionId: UserSubscriptionTable.stripeSubscriptionId,
+    });
 
-  console.log("Updated Subscription:", updatedSubscription) // Debugging
-
-  if (updatedSubscription != null) {
-    revalidateDbCache({
-      tag: CACHE_TAGS.subscription,
-      userId: updatedSubscription.userId,
-      id: updatedSubscription.id,
-    })
+  if (!updatedSubscription) {
+    console.warn("No subscription updated for:", where);
+    return;
   }
+
+  console.log("Updated Subscription:", updatedSubscription); // Debugging
+
+  revalidateDbCache({
+    tag: CACHE_TAGS.subscription,
+    userId: updatedSubscription.userId,
+    id: updatedSubscription.id,
+  });
 }
 
 

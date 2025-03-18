@@ -1,0 +1,2 @@
+ALTER TABLE "holiday_discounts" DROP CONSTRAINT "holiday_discounts_product_id_holiday_date_pk";--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS "unique_holiday_product" ON "holiday_discounts" USING btree ("product_id","holiday_date");

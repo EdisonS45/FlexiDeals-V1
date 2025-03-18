@@ -9,6 +9,7 @@ import {
   real,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core"
 
@@ -199,21 +200,27 @@ export const UserSubscriptionTable = pgTable(
 
 export const HolidayDiscountTable = pgTable("holiday_discounts", {
   id: uuid("id").primaryKey().defaultRandom(),
+
   productId: uuid("product_id")
     .notNull()
     .references(() => ProductTable.id, { onDelete: "cascade" }),
-    holidayDate: timestamp("holiday_date", { withTimezone: true }),
-    holidayName: text("holiday_name").notNull(),
+
+  holidayDate: timestamp("holiday_date", { withTimezone: true }),
+  holidayName: text("holiday_name").notNull(),
   startBefore: real("start_before").notNull(), // in days
   endAfter: real("end_after").notNull(), // in days
   discountPercentage: real("discount_percentage"), // nullable for "no discount"
   couponCode: text("coupon_code"),
+
   createdAt,
   updatedAt,
 }, table => ({
   couponCodeIndex: index("holiday_discounts_coupon_code_idx").on(table.couponCode),
-  uniqueHolidayProduct: primaryKey({ columns: [table.productId, table.holidayDate] }),
-}))
+
+  // ✅ Define unique constraint instead of second primary key
+  uniqueHolidayProduct: uniqueIndex("unique_holiday_product").on(table.productId, table.holidayDate),
+}));
+
 
 export const holidayDiscountRelations = relations(HolidayDiscountTable, ({ one }) => ({
   product: one(ProductTable, {
