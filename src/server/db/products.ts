@@ -19,16 +19,23 @@ import { BatchItem } from "drizzle-orm/batch"
 
 export async function getProductHolidays({ productId, userId }: { productId: string, userId: string }) {
   const holidays = await db
-    .select()
+    .select({
+      id: HolidayDiscountTable.id,
+      holidayDate: HolidayDiscountTable.holidayDate,
+      holidayName: HolidayDiscountTable.holidayName,
+      startBefore: HolidayDiscountTable.startBefore,
+      endAfter: HolidayDiscountTable.endAfter,
+      discountPercentage: HolidayDiscountTable.discountPercentage,
+      couponCode: HolidayDiscountTable.couponCode, // ✅ Ensure couponCode is selected
+    })
     .from(HolidayDiscountTable)
-    .where(and(
-      eq(HolidayDiscountTable.productId, productId)
-      // If you have userId in this table, also filter by it
-    ))
+    .where(eq(HolidayDiscountTable.productId, productId))
     .orderBy(HolidayDiscountTable.holidayDate);
 
   return holidays;
 }
+
+
 
 
 export function getProductCountryGroups({

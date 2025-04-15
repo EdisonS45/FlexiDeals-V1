@@ -63,31 +63,23 @@ export default async function EditProductPage({
     </PageWithBackButton>
   )
 }
-async function HolidayTab({
-  productId,
-  userId,
-}: {
-  productId: string
-  userId: string
-}) {
+async function HolidayTab({ productId, userId }: { productId: string; userId: string }) {
   const holidays = await getProductHolidays({ productId, userId });
 
-  // Map holidays to match HolidayEntry
-  const mappedHolidays = holidays.map(h => ({
+  console.log("Fetched holidays from DB:", holidays); // ✅ Debugging log
+
+  const mappedHolidays = holidays.map((h) => ({
     id: h.id,
-    date: h.holidayDate,
-    name: h.holidayName,
-    startBefore: h.startBefore,
-    endAfter: h.endAfter,
+    date: h.holidayDate ? new Date(h.holidayDate) : new Date(), // ✅ Convert to Date safely
+    name: h.holidayName ?? "Unknown Holiday", // ✅ Handle null values
+    startBefore: h.startBefore ?? 0, // ✅ Default values for null
+    endAfter: h.endAfter ?? 0,
     discount: h.discountPercentage ? h.discountPercentage.toString() : "",
-    couponCode: h.couponCode ?? "",  // convert null to empty string
+    couponCode: h.couponCode ?? "", // ✅ Ensure couponCode is always a string
   }));
 
-  return (
-    <HolidayDiscountsForm initialEntries={mappedHolidays} productId={productId} />
-  );
+  return <HolidayDiscountsForm initialEntries={mappedHolidays} productId={productId} />;
 }
-
 
 
 function DetailsTab({

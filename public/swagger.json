@@ -1,69 +1,136 @@
 {
-    "openapi": "3.0.0",
-    "info": {
-      "title": "FlexiDeals API",
-      "version": "1.0.0",
-      "description": "API for getting product discount based on product name and country code."
-    },
-    "paths": {
-      "/api/products/get-discount": {
-        "post": {
-          "summary": "Get Discount for Product",
-          "description": "Returns discount coupon and percentage based on the product name and country code.",
-          "requestBody": {
-            "required": true,
+  "openapi": "3.0.0",
+  "info": {
+    "title": "FlexiDeals API",
+    "version": "1.0.0",
+    "description": "API for getting product discount based on product name and country code."
+  },
+  "paths": {
+    "/api/products/get-discount": {
+      "post": {
+        "summary": "Get Discount for Product",
+        "description": "Returns discount coupon and percentage based on the product name and country code.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "productName": {
+                    "type": "string",
+                    "example": "Productivity Course"
+                  },
+                  "countryCode": {
+                    "type": "string",
+                    "example": "IN"
+                  }
+                },
+                "required": ["productName", "countryCode"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Discount found",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "productName": {
+                    "coupon": {
                       "type": "string",
-                      "example": "Productivity Course"
+                      "example": "APITESTING"
                     },
-                    "countryCode": {
-                      "type": "string",
-                      "example": "IN"
-                    }
-                  },
-                  "required": ["productName", "countryCode"]
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Discount found",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "coupon": {
-                        "type": "string",
-                        "example": "APITESTING"
-                      },
-                      "discountPercentage": {
-                        "type": "number",
-                        "example": 90
-                      }
+                    "discountPercentage": {
+                      "type": "number",
+                      "example": 90
                     }
                   }
                 }
               }
-            },
-            "400": {
-              "description": "Bad Request - Missing productName or countryCode"
-            },
-            "404": {
-              "description": "Product or discount not found"
-            },
-            "500": {
-              "description": "Internal Server Error"
             }
+          },
+          "400": {
+            "description": "Bad Request - Missing productName or countryCode"
+          },
+          "404": {
+            "description": "Product or discount not found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/products/get-holiday-discount": {
+      "post": {
+        "summary": "Get Holiday-Based Discount for Product",
+        "description": "Returns discount details for a product based on the holiday name.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "holidayName": {
+                    "type": "string",
+                    "example": "Christmas"
+                  },
+                  "productName": {
+                    "type": "string",
+                    "example": "Productivity Course"
+                  }
+                },
+                "required": ["holidayName", "productName"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Holiday discount found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "startBefore": {
+                      "type": "string",
+                      "format": "date-time",
+                      "example": "2025-12-20T00:00:00Z"
+                    },
+                    "endAfter": {
+                      "type": "string",
+                      "format": "date-time",
+                      "example": "2025-12-27T23:59:59Z"
+                    },
+                    "discountPercentage": {
+                      "type": "number",
+                      "example": 25
+                    },
+                    "coupon": {
+                      "type": "string",
+                      "example": "HOLIDAY25"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Missing holidayName or productName"
+          },
+          "404": {
+            "description": "Holiday discount not found"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
     }
   }
-  
+}

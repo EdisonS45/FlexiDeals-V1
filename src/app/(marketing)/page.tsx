@@ -97,14 +97,7 @@ export default function HomePage() {
                 { label: "Discount API", href: "#" },
               ]}
             />
-            <FooterLinkGroup
-              title="Solutions"
-              links={[
-                { label: "Newsletter", href: "#" },
-                { label: "SaaS Business", href: "#" },
-                { label: "Online Courses", href: "#" },
-              ]}
-            />
+            
           </div>
           <div className="flex flex-col gap-8">
             <FooterLinkGroup
@@ -119,14 +112,7 @@ export default function HomePage() {
                 { label: "Stripe App", href: "#" },
               ]}
             />
-            <FooterLinkGroup
-              title="Company"
-              links={[
-                { label: "Affiliate", href: "#" },
-                { label: "Twitter", href: "#" },
-                { label: "Terms of Service", href: "#" },
-              ]}
-            />
+            
           </div>
           <div className="flex flex-col gap-8">
             <FooterLinkGroup
@@ -139,17 +125,7 @@ export default function HomePage() {
                 { label: "Paddle", href: "#" },
               ]}
             />
-            <FooterLinkGroup
-              title="Tutorials"
-              links={[
-                { label: "Any Website", href: "#" },
-                { label: "Lemon Squeezy", href: "#" },
-                { label: "Gumroad", href: "#" },
-                { label: "Stripe", href: "#" },
-                { label: "Chargebee", href: "#" },
-                { label: "Paddle", href: "#" },
-              ]}
-            />
+            
           </div>
         </div>
       </footer>
@@ -206,7 +182,7 @@ function PricingCard({
         </Feature>
         <Feature>PPP discounts</Feature>
         {canAccessAnalytics && <Feature>Advanced analytics</Feature>}
-        {canRemoveBranding && <Feature>Remove Easy PPP branding</Feature>}
+        {canRemoveBranding && <Feature>Remove FlexiDeals branding</Feature>}
         {canCustomizeBanner && <Feature>Banner customization</Feature>}
       </CardFooter>
     </Card>

@@ -1,43 +1,73 @@
 // File: src/server/actions/holidayDiscounts.ts
 import { db } from "@/drizzle/db";
 import { HolidayDiscountTable } from "@/drizzle/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 export async function createHolidayDiscount(data: any) {
-    try {
-      const holidayDateValue = new Date(data.holidayDate);
-      if (isNaN(holidayDateValue.getTime())) {
-        throw new Error("Invalid holidayDate provided");
-      }
-  
-      // Prevent redundant insert if both couponCode and discountPercentage are missing
-      const isCouponEmpty = !data.couponCode || data.couponCode.trim() === "";
-      const isDiscountEmpty =
-        data.discountPercentage === null || data.discountPercentage === undefined;
-  
-      if (isCouponEmpty && isDiscountEmpty) {
-        // Don't insert anything; log and exit
-        console.warn("No couponCode or discountPercentage provided. Skipping insert.");
-        return null;
-      }
-  
-      const inserted = await db
-        .insert(HolidayDiscountTable)
-        .values({
-          ...data,
-          holidayDate: holidayDateValue,
-          couponCode: isCouponEmpty ? null : data.couponCode,
-          discountPercentage: isDiscountEmpty ? null : data.discountPercentage,
-        })
-        .returning();
-  
-      return inserted[0];
-    } catch (error) {
-      console.error("Failed to create holiday discount:", error);
-      throw error;
+  try {
+    if (!data.couponCode || data.couponCode.trim() === "") {
+      console.warn("Skipping insert: No couponCode provided.");
+      return null;
     }
+
+    const holidayDateValue = new Date(data.holidayDate);
+    if (isNaN(holidayDateValue.getTime())) {
+      throw new Error("Invalid holidayDate provided");
+    }
+
+    const existingDiscount = await db
+      .select()
+      .from(HolidayDiscountTable)
+      .where(
+        and(
+          eq(HolidayDiscountTable.productId, data.productId),
+          eq(HolidayDiscountTable.holidayDate, holidayDateValue) // ✅ Use Date directly
+        )
+      )
+      .execute();
+
+    if (existingDiscount.length > 0) {
+      // ✅ Override existing record
+      console.log("Overriding existing holiday discount...");
+      const updated = await db
+        .update(HolidayDiscountTable)
+        .set({
+          holidayName: data.holidayName,
+          startBefore: data.startBefore,
+          endAfter: data.endAfter,
+          discountPercentage: data.discountPercentage ?? null,
+          couponCode: data.couponCode.trim(),
+        })
+        .where(eq(HolidayDiscountTable.id, existingDiscount[0].id))
+        .returning()
+        .execute();
+
+      return updated[0] ?? null;
+    }
+
+    // ✅ Insert new record if no existing entry found
+    const inserted = await db
+      .insert(HolidayDiscountTable)
+      .values({
+        productId: data.productId,
+        holidayDate: holidayDateValue, // ✅ Keep as Date object
+        holidayName: data.holidayName,
+        startBefore: data.startBefore,
+        endAfter: data.endAfter,
+        discountPercentage: data.discountPercentage ?? null,
+        couponCode: data.couponCode.trim(),
+      })
+      .returning()
+      .execute();
+
+    return inserted[0] ?? null;
+  } catch (error) {
+    console.error("Failed to create/update holiday discount:", error);
+    throw error;
   }
-  
+}
+
+
 
 export async function getHolidayDiscounts(productId: string | null) {
   if (!productId) return [];
@@ -47,7 +77,14 @@ export async function getHolidayDiscounts(productId: string | null) {
     .from(HolidayDiscountTable)
     .where(eq(HolidayDiscountTable.productId, productId));
 
-  return discounts;
+  // Ensure we are returning coupon codes properly
+  return discounts.map(d => ({
+    id: d.id,
+    holidayDate: d.holidayDate,
+    holidayName: d.holidayName,
+    discountPercentage: d.discountPercentage ?? null,
+    couponCode: d.couponCode ?? "", // Ensure empty string instead of null
+  }));
 }
 
 export async function updateHolidayDiscount(id: string, data: any) {

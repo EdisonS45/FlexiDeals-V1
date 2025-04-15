@@ -1,5 +1,6 @@
 import { subscriptionTiers, TierNames } from "@/data/subscriptionTiers"
 import { relations } from "drizzle-orm"
+import { sql } from "drizzle-orm";
 import {
   boolean,
   index,
@@ -206,21 +207,23 @@ export const HolidayDiscountTable = pgTable("holiday_discounts", {
     .references(() => ProductTable.id, { onDelete: "cascade" }),
 
   holidayDate: timestamp("holiday_date", { withTimezone: true }),
-  holidayName: text("holiday_name").notNull(),
-  startBefore: real("start_before").notNull(), // in days
-  endAfter: real("end_after").notNull(), // in days
+  holidayName: text("holiday_name"),
+  startBefore: real("start_before"), // in days
+  endAfter: real("end_after"), // in days
   discountPercentage: real("discount_percentage"), // nullable for "no discount"
-  couponCode: text("coupon_code"),
+  couponCode: text("coupon_code").notNull(),
 
   createdAt,
   updatedAt,
 }, table => ({
   couponCodeIndex: index("holiday_discounts_coupon_code_idx").on(table.couponCode),
 
-  // ✅ Define unique constraint instead of second primary key
-  uniqueHolidayProduct: uniqueIndex("unique_holiday_product").on(table.productId, table.holidayDate),
+  // ✅ Exclusion constraint to prevent overlapping discount periods
+  nonOverlappingDiscounts: sql`EXCLUDE USING gist (
+    product_id WITH =,
+    tstzrange(holiday_date - (start_before * INTERVAL '1 day'), holiday_date + (end_after * INTERVAL '1 day')) WITH &&
+  )`
 }));
-
 
 export const holidayDiscountRelations = relations(HolidayDiscountTable, ({ one }) => ({
   product: one(ProductTable, {
